@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "PowerShell",
+            "name": "vsim",
+             // Recompile before running test
+            "preLaunchTask": "vcom build",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "script": "vsim -c -do 'run -all; exit' work.${fileBasenameNoExtension}"
+        }
+    ]
+}
