@@ -8,7 +8,7 @@ entity ss_grid_display is
 	);
 	port (
 		enable     : in  std_ulogic;
-		-- Each digit can hold show two squares
+		-- Each digit can show two squares
 		top_row    : in  std_ulogic_vector(digits_horizontal - 1 downto 0);
 		bottom_row : in  std_ulogic_vector(digits_horizontal - 1 downto 0);
 		output     : out std_ulogic_vector((digits_horizontal * 7) - 1 downto 0)
