@@ -47,6 +47,7 @@ architecture implementation of stacker_state is
 	signal blink_counter_reset : std_ulogic := '1';
 	signal blink_counter_done  : std_ulogic;
 	signal blink_counter_blink : std_ulogic;
+	signal blink_count         : std_ulogic_vector(24 downto 0);
 begin
 	blink_counter: counter
 		generic map (
@@ -56,10 +57,12 @@ begin
 			trigger    => clk,
 			reset      => blink_counter_reset,
 			count_done => blink_counter_done,
-			-- 22nd bit will toggle multiple times whilst counting
-			-- Used for blinking without additional overhead
-			count(22)  => blink_counter_blink
+			count      => blink_count
 		);
+
+	-- 22nd bit will toggle multiple times whilst counting
+	-- Used for blinking without additional overhead
+	blink_counter_blink <= blink_count(22);
 
 	process (clk, reset)
 	begin
