@@ -46,7 +46,7 @@ begin
 
 	process
 	begin
-		report "Testing entity assignment2.";
+		report "Testing entity vector_ping_pong.";
 		-- Initialize signals.
 		input_tb <= "110000";
 		enable_tb <= '1';

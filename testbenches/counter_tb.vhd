@@ -43,7 +43,7 @@ begin
 	process
 		type int_array is array (0 to 15) of integer;
 	begin
-		report "Testing entity assignment2.";
+		report "Testing entity counter.";
 		-- Initialize signals.
 		trigger_tb <= '0';
 		reset_tb <= '0';

@@ -50,7 +50,7 @@ begin
 	process
 		type int_array is array (0 to 15) of integer;
 	begin
-		report "Testing entity assignment2.";
+		report "Testing entity clock_divider.";
 		wait for 10 ns;
 
 		-- Check if counters output 0 by default

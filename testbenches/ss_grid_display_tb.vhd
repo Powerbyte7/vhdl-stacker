@@ -45,7 +45,7 @@ begin
 	process
 		type int_array is array (0 to 15) of integer;
 	begin
-		report "Testing entity assignment2.";
+		report "Testing entity ss_grid_display.";
 		-- Initialize signals.
 		enable_tb <= '1';
 		top_row <= (others => '0');
