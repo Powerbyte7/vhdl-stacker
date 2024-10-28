@@ -15,12 +15,13 @@ entity stacker_state is
 		bottom_row       : out std_ulogic_vector(5 downto 0) := "001110";
 		-- Passed to vector_ping_pong
 		ping_pong_blocks : out std_ulogic_vector(5 downto 0) := "001110";
-		ping_pong_reset  : out std_ulogic;
 		ping_pong_enable : out std_ulogic;
 		-- Passed to score_counter
 		score_increase   : out std_ulogic;
 		score_show       : out std_ulogic;
-		score_reset      : out std_ulogic
+		score_reset      : out std_ulogic;
+		-- Passed to vector_ping_pong and speed_controller
+		place_row  : out std_ulogic
 	);
 end entity;
 
@@ -72,14 +73,14 @@ begin
 			case state is
 				when game_ready =>
 					score_reset <= '1';
-					ping_pong_reset <= '1';
+					place_row <= '1';
 					if action_key = '1' then
 						state <= game_start;
 						ping_pong_blocks <= "001110";
 						bottom_row <= "001110";
 					end if;
 				when game_start =>
-					ping_pong_reset <= '0';
+					place_row <= '0';
 					score_reset <= '0';
 					if action_key = '0' then
 						state <= moving_row;
@@ -93,10 +94,10 @@ begin
 						blocks_placed <= top_row;
 						blocks_left <= bottom_row and top_row;
 						state <= placed_row;
-						ping_pong_reset <= '1';
+						place_row <= '1';
 						score_increase <= '0';
 					else
-						ping_pong_reset <= '0';
+						place_row <= '0';
 						blink_counter_reset <= '1';
 					end if;
 				when placed_row =>

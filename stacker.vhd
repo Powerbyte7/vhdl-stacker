@@ -33,6 +33,17 @@ architecture implementation of stacker is
 			output     : out std_ulogic_vector((digits_horizontal * 7) - 1 downto 0)
 		);
 	end component;
+	component speed_controller is
+		generic (
+			interval : natural := 15_000_000;
+			speedup  : natural := 500_000
+		);
+		port (
+			clk, reset     : in  std_ulogic;
+			speed_increase : in  std_ulogic;
+			clk_out        : out std_ulogic
+		);
+	end component;
 	component clock_divider is
 		generic (
 			divisor : natural := 10000000
@@ -67,12 +78,13 @@ architecture implementation of stacker is
 			bottom_row       : out std_ulogic_vector(5 downto 0) := "001110";
 			-- Passed to vector_ping_pong
 			ping_pong_blocks : out std_ulogic_vector(5 downto 0) := "001110";
-			ping_pong_reset  : out std_ulogic;
 			ping_pong_enable : out std_ulogic;
 			-- Passed to score_counter
 			score_increase   : out std_ulogic;
 			score_show       : out std_ulogic;
-			score_reset      : out std_ulogic
+			score_reset      : out std_ulogic;
+			-- Passed to vector_ping_pong and speed_controller
+			place_row        : out std_ulogic
 		);
 	end component;
 	component score_counter is
@@ -89,11 +101,12 @@ architecture implementation of stacker is
 	-- Logic
 	signal clk_ping_pong    : std_ulogic;
 	signal ping_pong_enable : std_ulogic;
-	signal ping_pong_reset  : std_ulogic;
+	signal place_row        : std_ulogic;
 	signal score_highscore  : std_ulogic;
 	signal score_increase   : std_ulogic;
 	signal score_show       : std_ulogic;
 	signal score_reset      : std_ulogic;
+	signal led_blink        : std_ulogic;
 
 	-- State
 	signal ping_pong_blocks : std_ulogic_vector(5 downto 0) := "001110";
@@ -114,16 +127,24 @@ begin
 			output     => grid_display
 		);
 
-	ping_pong_clock: clock_divider
+	ping_pong_controller: speed_controller
+		port map (
+			clk            => clk,
+			reset          => reset or score_show, -- Reset to initial interval after score is shown
+			speed_increase => place_row,           -- Speed up after row is placed
+			clk_out        => clk_ping_pong
+		);
+
+	led_blink_clock: clock_divider
 		port map (
 			clk       => clk,
 			reset     => reset,
-			clock_out => clk_ping_pong
+			clock_out => led_blink
 		);
 
 	row_top: vector_ping_pong
 		port map (
-			reset           => ping_pong_reset,
+			reset           => place_row,
 			clk             => clk_ping_pong,
 			enable_movement => ping_pong_enable,
 			bits_in         => ping_pong_blocks,
@@ -151,7 +172,7 @@ begin
 			clk              => clk,
 			action_key       => action_key_synchronized,
 			reset            => reset,
-			ping_pong_reset  => ping_pong_reset,
+			place_row        => place_row,
 			ping_pong_enable => ping_pong_enable,
 			top_row          => top_row,
 			bottom_row       => bottom_row,
@@ -161,19 +182,14 @@ begin
 			score_show       => score_show
 		);
 
-	-- DEBUG
-	-- led_row(0) <= clk_ping_pong;
-	-- led_row(1) <= score_show;
-	-- led_row(2) <= score_highscore;
 
-	-- led_row(3) <= score_increase;
 	process (clk)
 	begin
 		if rising_edge(clk) then
 			if score_show = '1' then
 				hex_display <= score_display;
 				if score_highscore = '1' then
-					led_row <= (others => clk_ping_pong);
+					led_row <= (others => led_blink);
 				end if;
 			else
 				hex_display <= grid_display;
