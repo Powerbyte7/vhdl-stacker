@@ -5,30 +5,34 @@ library ieee;
 	use ieee.math_real.all;
 
 entity stacker_state is
+	generic (
+		begin_state : std_ulogic_vector(5 downto 0);
+		blink_cycle_duration : natural
+	);
 	port (
 		-- Input
-		clk              : in  std_ulogic;
-		action_key       : in  std_ulogic;
-		reset            : in  std_ulogic;
+		clk              : in  std_ulogic                    := '0';
+		action_key       : in  std_ulogic                    := '0';
+		reset            : in  std_ulogic                    := '0';
 		-- Passed to grid_display
 		top_row          : in  std_ulogic_vector(5 downto 0) := (others => '0');
-		bottom_row       : out std_ulogic_vector(5 downto 0) := "001110";
+		bottom_row       : out std_ulogic_vector(5 downto 0) := begin_state;
 		-- Passed to vector_ping_pong
-		ping_pong_blocks : out std_ulogic_vector(5 downto 0) := "001110";
-		ping_pong_enable : out std_ulogic;
+		ping_pong_blocks : out std_ulogic_vector(5 downto 0) := begin_state;
+		ping_pong_enable : out std_ulogic                    := '0';
 		-- Passed to score_counter
-		score_increase   : out std_ulogic;
-		score_show       : out std_ulogic;
-		score_reset      : out std_ulogic;
+		score_increase   : out std_ulogic                    := '0';
+		score_show       : out std_ulogic                    := '0';
+		score_reset      : out std_ulogic                    := '1';
 		-- Passed to vector_ping_pong and speed_controller
-		place_row  : out std_ulogic
+		place_row        : out std_ulogic                    := '0'
 	);
 end entity;
 
 architecture implementation of stacker_state is
 	component counter is
 		generic (
-			max_count : natural := 25000000
+			max_count : natural := blink_cycle_duration
 		);
 		port (
 			trigger, reset : in  std_ulogic;
@@ -42,18 +46,15 @@ architecture implementation of stacker_state is
 	signal state : state_type := game_ready;
 
 	-- Used to blink lost blocks
-	signal blocks_placed : std_ulogic_vector(5 downto 0) := "001110";
-	signal blocks_left   : std_ulogic_vector(5 downto 0) := "001110";
+	signal blocks_placed : std_ulogic_vector(5 downto 0) := begin_state;
+	signal blocks_left   : std_ulogic_vector(5 downto 0) := begin_state;
 
 	signal blink_counter_reset : std_ulogic := '1';
-	signal blink_counter_done  : std_ulogic;
-	signal blink_counter_blink : std_ulogic;
-	signal blink_count         : std_ulogic_vector(24 downto 0);
+	signal blink_counter_done  : std_ulogic := '0';
+	signal blink_counter_blink : std_ulogic := '0';
+	signal blink_count         : std_ulogic_vector(integer(ceil(log2(real(blink_cycle_duration)))) - 1 downto 0);
 begin
 	blink_counter: counter
-		generic map (
-			max_count => 25000000
-		)
 		port map (
 			trigger    => clk,
 			reset      => blink_counter_reset,
@@ -61,9 +62,8 @@ begin
 			count      => blink_count
 		);
 
-	-- 22nd bit will toggle multiple times whilst counting
-	-- Used for blinking without additional overhead
-	blink_counter_blink <= blink_count(22);
+	-- Blink 4 times using single bit in count.
+	blink_counter_blink <= blink_count(integer(ceil(log2(real(blink_cycle_duration)))) / 4);
 
 	process (clk, reset)
 	begin
@@ -76,6 +76,7 @@ begin
 					place_row <= '1';
 					if action_key = '1' then
 						state <= game_start;
+						report "STATE: START";
 						ping_pong_blocks <= "001110";
 						bottom_row <= "001110";
 					end if;
@@ -84,6 +85,7 @@ begin
 					score_reset <= '0';
 					if action_key = '0' then
 						state <= moving_row;
+						report "STATE: MOVING";
 					else
 						state <= game_start;
 					end if;
@@ -94,6 +96,7 @@ begin
 						blocks_placed <= top_row;
 						blocks_left <= bottom_row and top_row;
 						state <= placed_row;
+						report "STATE: PLACED";
 						place_row <= '1';
 						score_increase <= '0';
 					else
@@ -107,9 +110,11 @@ begin
 						if blocks_left = "000000" then
 							-- No blocks are left, game over
 							state <= game_over;
+							report "STATE: OVER";
 						else
 							-- Some blocks are left
 							state <= moving_row;
+							report "STATE: MOVING";
 							ping_pong_blocks <= blocks_left;
 							bottom_row <= blocks_left;
 							score_increase <= '1';

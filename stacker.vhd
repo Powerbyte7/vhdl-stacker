@@ -68,6 +68,10 @@ architecture implementation of stacker is
 		);
 	end component;
 	component stacker_state is
+		generic (
+			begin_state : std_ulogic_vector(5 downto 0) := "001110";
+			blink_cycle_duration : natural := 25000000
+		);
 		port (
 			-- Input
 			clk              : in  std_ulogic;
