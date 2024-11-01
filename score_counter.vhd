@@ -14,11 +14,14 @@ entity score_counter is
 end entity;
 
 architecture implementation of score_counter is
-	component seven_segment_decoder is
+	component ss_decoder is
+		generic (
+			digits : natural := 6
+		);
 		port (
-			hex_nibble         : in  std_ulogic_vector(3 downto 0);
-			blank              : in  std_ulogic; -- blank control
-			seven_segment_code : out std_ulogic_vector(6 downto 0)
+			bcd      : in  std_ulogic_vector((digits * 4) - 1 downto 0);
+			blank    : in  std_ulogic_vector((digits) - 1 downto 0);
+			ss_codes : out std_ulogic_vector((digits * 7) - 1 downto 0)
 		);
 	end component;
 
@@ -28,41 +31,11 @@ architecture implementation of score_counter is
 	signal score_blank : std_ulogic_vector(5 downto 0)  := (others => '1');
 begin
 	--score_display <= score_bcd;
-	hex0: seven_segment_decoder
+	decoder: ss_decoder
 		port map (
-			hex_nibble         => score_bcd(3 downto 0),
-			blank              => score_blank(0),
-			seven_segment_code => score_display(6 downto 0)
-		);
-	hex1: seven_segment_decoder
-		port map (
-			hex_nibble         => score_bcd(7 downto 4),
-			blank              => score_blank(1),
-			seven_segment_code => score_display(13 downto 7)
-		);
-	hex2: seven_segment_decoder
-		port map (
-			hex_nibble         => score_bcd(11 downto 8),
-			blank              => score_blank(2),
-			seven_segment_code => score_display(20 downto 14)
-		);
-	hex3: seven_segment_decoder
-		port map (
-			hex_nibble         => score_bcd(15 downto 12),
-			blank              => score_blank(3),
-			seven_segment_code => score_display(27 downto 21)
-		);
-	hex4: seven_segment_decoder
-		port map (
-			hex_nibble         => score_bcd(19 downto 16),
-			blank              => score_blank(4),
-			seven_segment_code => score_display(34 downto 28)
-		);
-	hex5: seven_segment_decoder
-		port map (
-			hex_nibble         => score_bcd(23 downto 20),
-			blank              => score_blank(5),
-			seven_segment_code => score_display(41 downto 35)
+			bcd      => score_bcd,
+			blank    => score_blank,
+			ss_codes => score_display
 		);
 
 	process (score_reset, reset, score_increase)
