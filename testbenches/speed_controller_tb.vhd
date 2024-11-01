@@ -26,9 +26,9 @@ architecture testbench of speed_controller_tb is
 	end component;
 	-- Signal declaration. These signals are used to drive your
 	-- inputs and store results (if required).
-	signal trigger_tb        : std_ulogic := '0';
-	signal reset_tb          : std_ulogic := '0';
-	signal speed_increase_tb : std_ulogic := '0';
+	signal trigger_tb        : std_ulogic;
+	signal reset_tb          : std_ulogic;
+	signal speed_increase_tb : std_ulogic;
 	signal out_tb            : std_ulogic;
 begin
 	-- A port map is in this case nothing more than a construction to
@@ -79,14 +79,10 @@ begin
 		speed_increase_tb <= '1';
 		wait for 10 ns;
 		trigger_tb <= '0';
-		wait for 10 ns;
-		trigger_tb <= '1';
-		wait for 10 ns;
-		trigger_tb <= '0';
 		speed_increase_tb <= '0';
 
 		-- Same check, but with mod 3
-		for i in 2 to 15 loop
+		for i in 1 to 15 loop
 			wait for 10 ns;
 			trigger_tb <= '1';
 			wait for 10 ns;
@@ -109,14 +105,10 @@ begin
 		speed_increase_tb <= '1';
 		wait for 10 ns;
 		trigger_tb <= '0';
-		wait for 10 ns;
-		trigger_tb <= '1';
-		wait for 10 ns;
-		trigger_tb <= '0';
 		speed_increase_tb <= '0';
 
 		-- Same check, but with mod 2
-		for i in 2 to 16 loop
+		for i in 1 to 16 loop
 			wait for 10 ns;
 			trigger_tb <= '1';
 			wait for 10 ns;

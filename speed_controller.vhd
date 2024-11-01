@@ -34,14 +34,12 @@ begin
 		elsif rising_edge(clk) then
 			if speed_increased = '0' and speed_increase = '1' then
 				speed_increased <= '1';
-				tick_counter <= current_interval - to_unsigned(speedup, 20);
-			elsif speed_increased = '1' and speed_increase = '1' then
-				current_interval <= tick_counter;
+				current_interval <= current_interval - to_unsigned(speedup, 20);
 			elsif speed_increase = '0' then
 				speed_increased <= '0';
 			end if;
 
-			if tick_counter = 0 and speed_increase = '0' then
+			if tick_counter = 0 then
 				tick_counter <= current_interval; -- Reset count if 0 is reached
 				done <= '1';
 			else
