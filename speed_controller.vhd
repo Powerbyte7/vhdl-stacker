@@ -16,8 +16,8 @@ entity speed_controller is
 end entity;
 
 architecture implementation of speed_controller is
-	signal tick_counter     : unsigned(28 downto 0) := (others => '0');
-	signal current_interval : unsigned(28 downto 0) := to_unsigned(interval, 29);
+	signal tick_counter     : unsigned(28 downto 0) := to_unsigned(interval - 1, 29);
+	signal current_interval : unsigned(28 downto 0) := to_unsigned(interval - 1, 29);
 	signal done             : std_ulogic            := '0';
 	-- To avoid increasing speed on every clock cycle
 	signal speed_increased : std_ulogic := '0';
@@ -27,10 +27,10 @@ begin
 	process (clk, reset)
 	begin
 		if reset = '1' then
-			tick_counter <= (others => '0');
+			tick_counter <= to_unsigned(interval - 1, 29);
 			done <= '0';
 			speed_increased <= '0';
-            current_interval <= to_unsigned(interval, 29);
+			current_interval <= to_unsigned(interval - 1, 29);
 		elsif rising_edge(clk) then
 			if speed_increased = '0' and speed_increase = '1' then
 				speed_increased <= '1';
